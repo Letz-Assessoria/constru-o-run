@@ -340,3 +340,8 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 </div>
 
 <div id="app"></div>
+
+<!-- Firebase (Firestore + login anônimo). No deploy real carrega do gstatic; na prévia do artifact fica em modo local. -->
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>

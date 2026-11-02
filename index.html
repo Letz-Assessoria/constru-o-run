@@ -341,6 +341,11 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 
 <div id="app"></div>
 
+<!-- Firebase (Firestore + login anônimo). No deploy real carrega do gstatic; na prévia do artifact fica em modo local. -->
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
 <script>
 
 /* ================= CONFIGURAÇÃO ================= */
@@ -353,6 +358,15 @@ var CONFIG={
   // Códigos de acesso (maiúsculas e minúsculas não fazem diferença)
   // Link de inscrição na corrida (botão da tela de login)
   INSCRICAO:'https://manoelferragens.com.br/corrida/?utm_source=construcao-run-app&utm_medium=app&utm_content=inscricao',
+  // Configuração web do Firebase (pública). Com ela, o progresso salva no Firestore.
+  FIREBASE:{
+    apiKey:"AIzaSyADffTccXDOK0t25M-UAJBdWwyHvNYp6Vg",
+    authDomain:"construcaorun.firebaseapp.com",
+    projectId:"construcaorun",
+    storageBucket:"construcaorun.firebasestorage.app",
+    messagingSenderId:"1023736096174",
+    appId:"1:1023736096174:web:5887ca240230402b42d43f"
+  },
   // Códigos de acesso (maiúsculas e minúsculas não fazem diferença)
   CODIGOS:{
     aluno:'LETZBORA',        // qualquer corredor entra com o e-mail dele + este código
@@ -432,26 +446,30 @@ SEMANAS.forEach(function(s){s.dias.forEach(function(d,i){if(!d)return;var t={id:
 function treinoDe(t,nv){var raw=PLANO[nv][t.sem-1][t.dia];if(raw==='PROVA')return {prova:true};var p=raw.split('|');return {main:p[0],total:+p[1]};}
 
 /* ================= ARMAZENAMENTO ================= */
-/* ===== CAMADA DE DADOS — TROCAR POR FIREBASE AQUI =====
-   Hoje tudo fica no navegador (localStorage), então o progresso vale só neste
-   aparelho. Para salvar de verdade e o painel ver todos os corredores, troque
-   as 4 funções abaixo por chamadas ao Firebase, mantendo o mesmo formato:
-     getEmails()  -> lista de e-mails cadastrados
-     setEmails(l) -> grava a lista
-     users()      -> objeto { email: {nome, tel, cidade, asso, nivel, feitos, zap, ...} }
-     salvarUsers()-> grava esse objeto (o id de cada corredor é o e-mail)
-   O resto do app já lê e escreve só por essas 4 funções. */
+/* ===== CAMADA DE DADOS =====
+   O app lê e escreve só pelas funções abaixo. Elas guardam tudo no navegador
+   (localStorage) para abrir rápido e funcionar sem internet, e — quando o
+   Firebase está disponível (ver bloco FIREBASE mais abaixo) — também salvam no
+   Firestore, onde cada corredor é um documento na coleção "corredores", com o
+   e-mail como id. Assim o progresso segue a pessoa em qualquer aparelho e o
+   painel Letz vê todos os corredores. */
 function ler(k,def){try{var v=localStorage.getItem(k);return v?JSON.parse(v):def;}catch(e){return def;}}
 function gravar(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
 var MEM={};
 function getEmails(){return MEM.emails||(MEM.emails=ler('crun_emails',CONFIG.EMAILS_INICIAIS.slice()));}
-function setEmails(l){MEM.emails=l;gravar('crun_emails',l);}
+function setEmails(l){
+  var antes=getEmails().slice();MEM.emails=l;gravar('crun_emails',l);
+  // Firestore: cria documento para e-mail novo, apaga o do e-mail removido
+  l.forEach(function(e){if(antes.indexOf(e)<0){if(!users()[e])users()[e]={email:e};fbSalvarUser(e);}});
+  antes.forEach(function(e){if(l.indexOf(e)<0){delete users()[e];fbRemoverUser(e);}});
+  gravar('crun_users',users());
+}
 
 /* ================= ESTADO ================= */
 /* Dados de cada corredor: perfil, nível, treinos feitos e cliques no WhatsApp */
 function users(){return MEM.u||(MEM.u=ler('crun_users',{}));}
-function salvarUsers(){gravar('crun_users',users());}
-function me(){var u=users();if(!u[V.email])u[V.email]={email:V.email,feitos:{},zap:0};return u[V.email];}
+function salvarUsers(){gravar('crun_users',users());fbSalvarUser(V.email);}
+function me(){var u=users();var m=u[V.email]||(u[V.email]={email:V.email});if(!m.feitos)m.feitos={};if(typeof m.zap!=='number')m.zap=0;return m;}
 function ADM(e){e=norm(e);return CONFIG.LETZ_EMAILS.indexOf(e)>-1?{papel:'letz'}:CONFIG.ORGANIZADOR_EMAILS.indexOf(e)>-1?{papel:'organizador'}:null;}
 
 var V={tela:'login',email:'',cod:'',admin:false,papel:'',erro:'',treino:null,msgPainel:'',busca:'',rmPend:null,rascunho:'',aba:'geral',filtro:'todos',buscaC:'',pf:{},pfErro:''};
@@ -723,6 +741,36 @@ function cardInstalar(){
 window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();PWA.evento=e;if(V.tela==='login')render();});
 window.addEventListener('appinstalled',function(){PWA.instalado=true;PWA.evento=null;if(V.tela==='login')render();});
 
+/* ================= FIREBASE (Firestore + login anônimo) ================= */
+/* Liga só quando o SDK do Firebase carregou (no deploy real). Na prévia do
+   artifact o SDK é bloqueado e o app segue 100% no localStorage. */
+var FB={on:false,db:null,pronto:false};
+function fbInit(){
+  try{
+    if(typeof firebase==='undefined'||!firebase.initializeApp||!CONFIG.FIREBASE||!CONFIG.FIREBASE.apiKey)return;
+    firebase.initializeApp(CONFIG.FIREBASE);
+    FB.db=firebase.firestore();FB.on=true;
+    firebase.auth().onAuthStateChanged(function(u){if(u&&!FB.pronto){FB.pronto=true;fbCarregar();}});
+    firebase.auth().signInAnonymously().catch(function(e){console.warn('Login anônimo falhou:',e&&e.code);});
+  }catch(e){console.warn('Firebase não iniciou:',e);FB.on=false;}
+}
+function fbCarregar(){ // puxa todos os corredores do Firestore para a memória
+  if(!FB.on)return;
+  FB.db.collection('corredores').get().then(function(snap){
+    var us=users();snap.forEach(function(doc){us[doc.id]=Object.assign(us[doc.id]||{},doc.data());});
+    MEM.emails=Object.keys(us).sort();gravar('crun_users',us);gravar('crun_emails',MEM.emails);
+    render();
+  }).catch(function(e){console.warn('Leitura do Firestore falhou:',e&&e.code);});
+}
+function fbSalvarUser(email){
+  if(!FB.on||!email||!users()[email])return;
+  FB.db.collection('corredores').doc(email).set(users()[email],{merge:true}).catch(function(e){console.warn('Gravação falhou:',e&&e.code);});
+}
+function fbRemoverUser(email){
+  if(!FB.on||!email)return;
+  FB.db.collection('corredores').doc(email).delete().catch(function(e){console.warn('Remoção falhou:',e&&e.code);});
+}
+
 /* ================= RENDER E EVENTOS ================= */
 var app=document.getElementById('app');
 function render(foco){
@@ -736,7 +784,7 @@ function entrar(){{
     if(!valido(e)){V.erro='Digite um e-mail válido, como nome@gmail.com.';return render('in-email');}
     var c=norm(document.getElementById('in-cod').value),K=CONFIG.CODIGOS;V.cod=document.getElementById('in-cod').value;
     if(!c){V.erro='Digite o código de acesso.';return render('in-cod');}
-    function painel(p){V.admin=true;V.papel=p;V.cod='';gravar('crun_sessao',{email:e,admin:true,papel:p});ir('painel',{erro:'',aba:'geral'});}
+    function painel(p){V.admin=true;V.papel=p;V.cod='';gravar('crun_sessao',{email:e,admin:true,papel:p});fbCarregar();ir('painel',{erro:'',aba:'geral'});}
     if(c===norm(K.letz)){if(!ADM(e)||ADM(e).papel!=='letz'){V.erro='Este código não vale para este e-mail.';return render('in-cod');}return painel('letz');}
     if(c===norm(K.organizador)){if(!ADM(e)||ADM(e).papel!=='organizador'){V.erro='Este código não vale para este e-mail.';return render('in-cod');}return painel('organizador');}
     if(c!==norm(K.aluno)){V.erro='Código incorreto. O código é LETZBORA.';return render('in-cod');}
@@ -784,12 +832,13 @@ app.addEventListener('click',function(ev){
   else if(a==='ver-atleta')paraTreinos();
   else if(a==='trocar')ir('nivel');
   else if(a==='nivel'){setNivel(+b.getAttribute('data-n'));ir('treinos');}
-  else if(a==='ver-painel')ir('painel');
+  else if(a==='ver-painel'){fbCarregar();ir('painel');}
   else if(a==='rm'){var e=b.getAttribute('data-e');
     if(V.rmPend===e){setEmails(getEmails().filter(function(x){return x!==e;}));V.rmPend=null;V.msgPainel=e+' removido.';}
     else V.rmPend=e;render();}
 });
 render();
+fbInit();
 
 /* ================= ABERTURA ================= */
 (function(){
