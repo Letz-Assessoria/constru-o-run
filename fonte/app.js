@@ -40,39 +40,31 @@ var NIVEIS={
     prova:'Comece com 2 min de caminhada. Depois faça 6 min de corrida e 1 min de caminhada até o fim. Se estiver bem no último km, corra direto até a chegada.',
     obs:'Se um bloco de corrida não sair inteiro, caminhe e retome no próximo. Se a semana inteira foi assim, repita a semana.'},
  2:{nome:'Já corro 1 km',quem:'Corro 1 km (6 a 10 min) sem parar, mas não 3 km',meta:'Correr os 5 km com no máximo 2 pausas curtas de caminhada',
-    sobre:'Os blocos crescem até 32 min contínuos no treino 3 da semana 5. O treino 2 traz acelerações curtas e, na semana 5, um trecho final mais firme em Z3. Fora isso, toda corrida é em Z2.',
+    sobre:'Os blocos crescem até 32 min contínuos no treino 3 da semana 3. O treino 2 traz acelerações curtas e, na semana 3, um trecho final mais firme em Z3. Fora isso, toda corrida é em Z2.',
     prova:'Faça o primeiro km em Z2 bem leve. Se precisar, caminhe 1 min perto do km 2,5 e outro perto do km 4.',
-    obs:'Os 32 min da semana 5 cobrem cerca de 4 km. Na prova, as pausas curtas de caminhada fecham os 5 km.'},
+    obs:'Os 32 min da semana 3 cobrem cerca de 4 km. Na prova, as pausas curtas de caminhada fecham os 5 km.'},
  3:{nome:'Já corro 3 km',quem:'Corro 3 km (20 a 25 min) sem parar',meta:'Correr os 5 km inteiros, e melhor que hoje',
-    sobre:'Duas semanas de base com acelerações e um primeiro contato com Z4, depois tiros em Z5 no treino 2 e blocos de Z4 no treino 1. O treino 3, em Z2, sobe de 30 para 39 min.',
+    sobre:'Uma semana de base com acelerações, depois tiros em Z5 no treino 2 e blocos de Z4 no treino 1. O treino 3, em Z2, sobe de 30 para 39 min.',
     prova:'Faça o primeiro km em Z2 alta. Do km 2 ao 4, corra em Z4. No último km, use o que sobrar.',
     obs:'Se ainda não fecha 30 min contínuos na semana 1, caminhe 1 min a cada 10 min e siga.'}
 };
 var SEMANAS=[
- {n:1,periodo:'11/11 a 15/11',dias:['Qua 11/11','Sex 13/11','Dom 15/11']},
- {n:2,periodo:'17/11 a 21/11',dias:['Ter 17/11','Qui 19/11','Sáb 21/11']},
- {n:3,periodo:'24/11 a 28/11',dias:['Ter 24/11','Qui 26/11','Sáb 28/11']},
- {n:4,periodo:'01/12 a 05/12',tag:'Alívio',dias:['Ter 01/12','Qui 03/12','Sáb 05/12']},
- {n:5,periodo:'08/12 a 12/12',dias:['Ter 08/12','Qui 10/12','Sáb 12/12']},
- {n:6,periodo:'15/12 a 20/12',tag:'Semana da prova',dias:['Ter 15/12','Qui 17/12','Dom 20/12']}
+ {n:1,periodo:'24/11 a 28/11',dias:['Ter 24/11','Qui 26/11','Sáb 28/11']},
+ {n:2,periodo:'01/12 a 05/12',dias:['Ter 01/12','Qui 03/12','Sáb 05/12']},
+ {n:3,periodo:'08/12 a 12/12',dias:['Ter 08/12','Qui 10/12','Sáb 12/12']},
+ {n:4,periodo:'15/12 a 20/12',tag:'Semana da prova',dias:['Ter 15/12','Qui 17/12','Dom 20/12']}
 ];
 var PLANO={
  1:[["7 × (1' corrida + 1'30\" caminhada)|28","Pirâmide: 1', 2', 1', 2', 1', 2' de corrida, com 2' de caminhada entre eles|31","8 × (1'30\" corrida + 2' caminhada)|38"],
-    ["6 × (2' corrida + 2' caminhada)|34","2 × (2', 3', 2' de corrida), com 1'30\" de caminhada depois de cada bloco|33","7 × (2'30\" corrida + 1'30\" caminhada)|38"],
     ["5 × (3' corrida + 1'30\" caminhada)|33","Escada: 4', 4', 3', 3', 2' de corrida, com 1'30\" de caminhada entre eles|34","6 × (3'30\" corrida + 1'30\" caminhada)|40"],
-    ["4 × (3' corrida + 1'30\" caminhada)|28","3 × (5' corrida + 2' caminhada)|31","4 × (4' corrida + 1' caminhada)|30"],
     ["5 × (4' corrida + 1'30\" caminhada)|38","Escada: 6', 5', 4', 3' de corrida, com 1'30\" de caminhada entre eles|34","5 × (6' corrida + 1' caminhada)|45"],
     ["4 × (5' corrida + 1'30\" caminhada)|36","3 × (3' corrida + 1'30\" caminhada)|24","PROVA"]],
  2:[["3 × (6' corrida + 2' caminhada)|34","10' corrida + 2' caminhada + 6' corrida + 4 × (15\" aceleração + 45\" caminhada)|32","2 × (12' corrida + 2' caminhada)|38"],
-    ["4 × (5' corrida + 1' caminhada)|34","15' corrida + 2' caminhada + 5' corrida + 5 × (15\" aceleração + 45\" caminhada)|37","15' corrida + 2' caminhada + 12' corrida|39"],
     ["2 × (10' corrida + 1' caminhada)|32","18' corrida + 6 × (20\" aceleração + 40\" caminhada)|34","20' corrida + 1' caminhada + 10' corrida|41"],
-    ["15' corrida contínua|25","12' corrida + 4 × (20\" aceleração + 40\" caminhada)|26","22' corrida contínua|32"],
     ["2 × (12' corrida + 1' caminhada)|36","20' corrida, os últimos 5' em Z3 + 4 × (20\" aceleração + 40\" caminhada)|34","32' corrida contínua|42"],
     ["18' corrida + 4 × (20\" aceleração + 40\" caminhada)|32","10' corrida bem leve|20","PROVA"]],
  3:[["22' Z2 + 4 × (20\" aceleração + 40\" trote Z1)|26","6 × (30\" aceleração + 1' trote Z1)|34","30' Z2|30"],
-    ["25' Z2, os últimos 5' em Z3|25","2 × (4' Z4 + 1'30\" Z1)|36","33' Z2|33"],
     ["15' Z2 + 4 × (1' Z4 + 1' Z1) + 5' Z2|28","4 × (1'30\" Z5 + 1'30\" Z1)|37","36' Z2|36"],
-    ["20' Z2 + 4 × (20\" aceleração + 40\" trote Z1)|24","3 × (1' Z5 + 1'30\" Z1)|33","26' Z2|26"],
     ["15' Z2 + 6' Z4 contínuos + 5' Z2|26","2', 3' e 2' em Z5, com 2' Z1 depois de cada um|38","39' Z2|39"],
     ["15' Z2 + 4 × (45\" Z4 + 1' Z1) + 5' Z2|27","18' Z2 leve|18","PROVA"]]
 };
@@ -86,14 +78,14 @@ var ZONAS=[
  ['Aceleração','aceleração','Rápido e solto, sem sprint']
 ];
 var AJUSTES=[
- ['Faltou 2 dos 3 treinos da semana','Repita a semana. Como a prova tem data fixa, a semana repetida ocupa o lugar da semana 4 (alívio). Não junte dois treinos no mesmo dia.'],
+ ['Faltou 2 dos 3 treinos da semana','Repita a semana. Como a prova tem data fixa, a semana repetida ocupa o lugar da semana seguinte. Não junte dois treinos no mesmo dia.'],
  ['Dor em 2 treinos seguidos','Volte para a semana anterior e fale com o professor.'],
- ['Nível fácil demais','Quem fez as duas primeiras semanas sem esforço pode passar para a mesma semana do nível de cima.'],
+ ['Nível fácil demais','Quem fez a primeira semana sem esforço pode passar para a mesma semana do nível de cima.'],
  ['Nível difícil demais','Quem não completa os blocos por duas sessões seguidas desce para a mesma semana do nível de baixo.']
 ];
 var NOMES_DIA={Seg:'segunda',Ter:'terça',Qua:'quarta',Qui:'quinta',Sex:'sexta','Sáb':'sábado',Dom:'domingo'};
 var TODOS=[];
-SEMANAS.forEach(function(s){s.dias.forEach(function(d,i){if(!d)return;var t={id:s.n+'-'+(i+1),sem:s.n,dia:i,d:d,prova:s.n===6&&i===2};t.num=TODOS.length+1;t.titulo=t.prova?'Dia da prova':'Treino de '+NOMES_DIA[d.split(' ')[0]];TODOS.push(t);});});
+SEMANAS.forEach(function(s){s.dias.forEach(function(d,i){if(!d)return;var t={id:s.n+'-'+(i+1),sem:s.n,dia:i,d:d,prova:s.n===4&&i===2};t.num=TODOS.length+1;t.titulo=t.prova?'Dia da prova':'Treino de '+NOMES_DIA[d.split(' ')[0]];TODOS.push(t);});});
 function treinoDe(t,nv){var raw=PLANO[nv][t.sem-1][t.dia];if(raw==='PROVA')return {prova:true};var p=raw.split('|');return {main:p[0],total:+p[1]};}
 
 /* ================= ARMAZENAMENTO ================= */
@@ -336,9 +328,9 @@ function vGeral(){
   h+='<section class="bloco-p"><h3>Funil</h3><div class="barras">'+
     barra('Liberados',lib,lib)+barra('Cadastro feito',cad.length,lib)+barra('Escolheram nível',niv.length,lib)+barra('Fizeram 1 treino ou mais',trein.length,lib)+barra('Clicaram no WhatsApp',cliq.length,lib,'neonb')+'</div></section>';
   // até onde chegaram
-  var buck=[0,0,0,0,0,0,0];cad.forEach(function(r){var u=ultimoTreino(r);buck[u?u.sem:0]++;});var mx=Math.max.apply(null,buck.concat(1));
+  var buck=[0,0,0,0,0];cad.forEach(function(r){var u=ultimoTreino(r);buck[u?u.sem:0]++;});var mx=Math.max.apply(null,buck.concat(1));
   h+='<section class="bloco-p"><h3>Até onde chegaram</h3><p class="muted sm">Semana do último treino marcado como feito, entre quem fez o cadastro.</p><div class="barras">'+
-    barra('Nenhum treino',buck[0],mx,'cinza')+[1,2,3,4,5,6].map(function(n){return barra('Semana '+n+(n===4?' · alívio':n===6?' · prova':''),buck[n],mx);}).join('')+'</div></section>';
+    barra('Nenhum treino',buck[0],mx,'cinza')+[1,2,3,4].map(function(n){return barra('Semana '+n+(n===4?' · prova':''),buck[n],mx);}).join('')+'</div></section>';
   // níveis
   var nv=[0,0,0,0];niv.forEach(function(r){nv[r.nivel]++;});var mn=Math.max(nv[1],nv[2],nv[3],1);
   h+='<section class="bloco-p"><h3>Nível escolhido</h3><div class="barras">'+barra('1 · Do zero',nv[1],mn)+barra('2 · Já corre 1 km',nv[2],mn,'azulb')+barra('3 · Já corre 3 km',nv[3],mn,'neonb')+'</div>'+
